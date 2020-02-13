@@ -1,0 +1,17 @@
+### sum
+POST http://localhost:8180/api/add/sum
+Content-Type: application/json
+
+{
+    "a":1,
+    "b":1
+}
+
+### concat
+POST http://localhost:8180/api/add/concat
+Content-Type: application/json
+
+{
+    "a":"a",
+    "b":"b"
+}
