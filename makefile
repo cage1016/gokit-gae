@@ -2,6 +2,10 @@ all: help
 
 .PHONY: all help
 
+## build_ng_docker: Build cloudbuild.yaml step gcr.io/cloud-build-testbed/ng:v9 docker image
+build_ng_docker:
+	cd deployments/docker/ng && gcloud builds submit . --config=cloudbuild.yaml
+
 PD_SOURCES:=$(shell find ./pb -type d)
 proto:
 	@for var in $(PD_SOURCES); do \
