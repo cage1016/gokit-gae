@@ -7,8 +7,12 @@ import (
 	"os"
 )
 
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "ng-web/dist/ng-web/"+r.URL.Path)
+}
+
 func main() {
-	http.Handle("/", http.FileServer(http.Dir("ng-web/dist/ng-web")))
+	http.HandleFunc("/", indexHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
