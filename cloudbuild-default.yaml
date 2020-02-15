@@ -1,30 +1,34 @@
 # Decrypt the file containing the key
-steps:
-  - name: 'gcr.io/cloud-builders/git'
-    entrypoint: 'bash'
+steps:  
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'sh'
     args:
-      - -exc
-      - |
+      - '-c'
+      - |        
+        mkdir -p /root/.ssh
+
+        gsutil cp gs://cloud-build-testbed.appspot.com/ssh_keyfile /root/.ssh/ssh_keyfile
+
+        chmod 600 /root/.ssh/ssh_keyfile
+        cat <<EOF >/root/.ssh/config
+        Hostname github.com
+        IdentityFile /root/.ssh/ssh_keyfile
+        EOF
+
+        printenv GH_KNOWN > /root/.ssh/known_hosts
+
         # Cloud Build x GitHub integration uses source archives to fetch
         # the source, rather than Git source fetching, and as a consequence
         # does not include the .git/ directory. As a workaround, we clone
         # the repository and reset it to this build's commit sha.
-        git config --global user.email "you@example.com"
-        git config --global user.name "Your Name"
         git clone 'git@github.com:cage1016/gokit-gae.git' tmp
         mv tmp/.git .git
         rm -rf tmp
+        git config user.email $(gcloud auth list --filter=status:ACTIVE --format='value(account)')
         git reset "$COMMIT_SHA"
-        git submodule sync --recursive
         git submodule update --init --recursive
-        cd default/ng-web
-        git pull
-        cd ../..
-        git add default/ng-web
-        git commit -m 'swtich release to prepare release build'
-    volumes:
-      - name: 'ssh'
-        path: /root/.ssh        
+    env:
+      - GH_KNOWN=github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==   
 
   - name: 'gcr.io/cloud-builders/npm'
     dir: 'default/ng-web'
@@ -43,10 +47,10 @@ steps:
       - '-c'
       - |
         # get mask-web short sha
-        maskWebShortSha=$(git ls-files -s frontend/mask-web  | awk '{print substr($2,0,7)}')
+        maskWebShortSha=$(git ls-files -s default/ng-web  | awk '{print substr($2,0,7)}')
 
         # deploy
-        gcloud app deploy --version=${maskWebShortSha} frontend/app.yaml --no-promote -q
+        gcloud app deploy --version=${maskWebShortSha} default/app.yaml --no-promote -q
 
         echo "deploy succeeded."
 
