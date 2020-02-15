@@ -1,0 +1,6 @@
+dispatch:
+  - url: "*/favicon.ico"
+    module: default
+
+  - url: "cloud-build-testbed.appspot.com/"
+    module: default
