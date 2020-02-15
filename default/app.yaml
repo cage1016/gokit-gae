@@ -1,6 +1,6 @@
 service: default
 
-runtime: go111
+runtime: go112
 
 handlers:
   - url: /.*
